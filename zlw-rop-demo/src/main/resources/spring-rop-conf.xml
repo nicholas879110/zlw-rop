@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:rop="http://www.rop.com/schema/rop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+       http://www.rop.com/schema/rop http://www.rop.com/schema/rop/rop-1.0.xsd
+    http://www.springframework.org/schema/context
+    http://www.springframework.org/schema/context/spring-context-4.0.xsd">
+
+    <context:property-placeholder
+            location="classpath*:*.properties,file:/test/etc/www/*.properties"
+            system-properties-mode="OVERRIDE" ignore-resource-not-found="true"
+            ignore-unresolvable="true"/>
+
+    <!--① 扫描Spring Bean-->
+    <context:component-scan base-package="com.zlw">
+        <context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
+    </context:component-scan>
+
+    <!-- 启动Rop框架 -->
+    <rop:annotation-driven
+            id="router"
+            session-manager="redisSessionManager"
+            app-secret-manager="appSecretManager"
+            formatting-conversion-service="conversionService"
+            service-timeout-seconds="3000"
+            core-pool-size="500"
+            max-pool-size="1000"
+            queue-capacity="50"
+            keep-alive-seconds="300"
+            sign-enable="false"
+    />
+
+
+    <bean id="redisSessionManager" class="com.rop.session.DefaultSessionManager">
+    </bean>
+
+
+    <bean id="redisPoolConfig" class="redis.clients.jedis.JedisPoolConfig"></bean>
+    <bean id="jedisPool" class="redis.clients.jedis.JedisPool" destroy-method="destroy">
+        <constructor-arg name="poolConfig" ref="redisPoolConfig"/>
+        <constructor-arg name="host" value="${redis.host}"/>
+        <constructor-arg name="port" value="${redis.port}" type="int"/>
+    </bean>
+
+    <!-- <bean id="appSecretManager" class="SampleAppSecretManager"/> -->
+    <bean id="appSecretManager" class="com.rop.security.FileBaseAppSecretManager"/>
+
+
+    <!--设置自定义的类型转换服务，注册自定义的类型转换器-->
+    <bean id="conversionService" class="org.springframework.format.support.FormattingConversionServiceFactoryBean">
+        <property name="converters">
+            <set>
+                <!--将xxxx-yyyyyyy格式的电话转换为内部的Telephone对象-->
+                <bean class="com.zlw.rop.converter.DateConverter"/>
+            </set>
+        </property>
+    </bean>
+
+    <!--自定义method,appKey等这些系统级参数的参数名-->
+    <rop:sysparams format-param-name="format"/>
+
+
+    <!--
+        <import resource="spring-context-consumer-deal.xml" />
+        <import resource="spring-context-consumer-coupon.xml" /> -->
+</beans>
