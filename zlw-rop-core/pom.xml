@@ -21,7 +21,7 @@
     </licenses>
 
     <properties>
-        <hibernate.version>4.2.0.Final</hibernate.version>
+        <hibernate.version>6.0.23.Final</hibernate.version>
         <codehaus.jackson.version>1.9.5</codehaus.jackson.version>
         <jackson.version.xml>2.7.4</jackson.version.xml>
         <testng.version>6.3</testng.version>
